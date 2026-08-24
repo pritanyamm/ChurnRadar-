@@ -1,0 +1,5 @@
+plan_id,plan_name,tier,base_price_per_seat,features_available
+1,Starter,Starter,300,12
+2,Growth,Growth,650,28
+3,Business,Business,1200,45
+4,Enterprise,Enterprise,2000,60

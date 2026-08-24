@@ -1,0 +1,228 @@
+{
+  "metrics": {
+    "roc_auc": 0.9366,
+    "pr_auc": 0.678,
+    "brier": 0.04639,
+    "base_rate": 0.0842,
+    "train_snapshot": "2025-09-30",
+    "valid_snapshot": "2025-12-31",
+    "n_train": 28558,
+    "n_valid": 29896
+  },
+  "lift": [
+    {
+      "decile": 1,
+      "accounts": 2989,
+      "avg_score": 0.4266,
+      "actual_churn": 0.5764,
+      "lift": 6.84,
+      "share_of_all_churn": 0.684
+    },
+    {
+      "decile": 2,
+      "accounts": 2990,
+      "avg_score": 0.1001,
+      "actual_churn": 0.1482,
+      "lift": 1.76,
+      "share_of_all_churn": 0.176
+    },
+    {
+      "decile": 3,
+      "accounts": 2989,
+      "avg_score": 0.0343,
+      "actual_churn": 0.0575,
+      "lift": 0.68,
+      "share_of_all_churn": 0.068
+    },
+    {
+      "decile": 4,
+      "accounts": 2990,
+      "avg_score": 0.0161,
+      "actual_churn": 0.0284,
+      "lift": 0.34,
+      "share_of_all_churn": 0.034
+    },
+    {
+      "decile": 5,
+      "accounts": 2990,
+      "avg_score": 0.0084,
+      "actual_churn": 0.014,
+      "lift": 0.17,
+      "share_of_all_churn": 0.017
+    },
+    {
+      "decile": 6,
+      "accounts": 2989,
+      "avg_score": 0.0045,
+      "actual_churn": 0.0104,
+      "lift": 0.12,
+      "share_of_all_churn": 0.012
+    },
+    {
+      "decile": 7,
+      "accounts": 2990,
+      "avg_score": 0.0024,
+      "actual_churn": 0.004,
+      "lift": 0.05,
+      "share_of_all_churn": 0.005
+    },
+    {
+      "decile": 8,
+      "accounts": 2989,
+      "avg_score": 0.0013,
+      "actual_churn": 0.002,
+      "lift": 0.02,
+      "share_of_all_churn": 0.002
+    },
+    {
+      "decile": 9,
+      "accounts": 2990,
+      "avg_score": 0.0007,
+      "actual_churn": 0.0013,
+      "lift": 0.02,
+      "share_of_all_churn": 0.002
+    },
+    {
+      "decile": 10,
+      "accounts": 2990,
+      "avg_score": 0.0001,
+      "actual_churn": 0.0,
+      "lift": 0.0,
+      "share_of_all_churn": 0.0
+    }
+  ],
+  "calibration": [
+    {
+      "accounts": 3417,
+      "predicted": 0.0001,
+      "actual": 0.0003
+    },
+    {
+      "accounts": 4773,
+      "predicted": 0.0009,
+      "actual": 0.0008
+    },
+    {
+      "accounts": 1012,
+      "predicted": 0.0017,
+      "actual": 0.0049
+    },
+    {
+      "accounts": 2810,
+      "predicted": 0.0024,
+      "actual": 0.0046
+    },
+    {
+      "accounts": 3565,
+      "predicted": 0.0048,
+      "actual": 0.0095
+    },
+    {
+      "accounts": 2657,
+      "predicted": 0.0093,
+      "actual": 0.0169
+    },
+    {
+      "accounts": 2701,
+      "predicted": 0.0166,
+      "actual": 0.0289
+    },
+    {
+      "accounts": 2982,
+      "predicted": 0.0343,
+      "actual": 0.0577
+    },
+    {
+      "accounts": 2989,
+      "predicted": 0.1001,
+      "actual": 0.1482
+    },
+    {
+      "accounts": 2990,
+      "predicted": 0.4265,
+      "actual": 0.5763
+    }
+  ],
+  "importance": [
+    {
+      "feature": "billing_cycle",
+      "importance": 0.09453393865624701
+    },
+    {
+      "feature": "u1m_logins",
+      "importance": 0.03910001986786718
+    },
+    {
+      "feature": "tenure_months",
+      "importance": 0.03153681378784304
+    },
+    {
+      "feature": "discount_pct",
+      "importance": 0.009973612275144816
+    },
+    {
+      "feature": "u3m_logins",
+      "importance": 0.008800475610860642
+    },
+    {
+      "feature": "t90_tickets",
+      "importance": 0.004461896703837065
+    },
+    {
+      "feature": "t365_tickets",
+      "importance": 0.0017804006914929893
+    },
+    {
+      "feature": "p180_invoices",
+      "importance": 0.001672687924523325
+    },
+    {
+      "feature": "u3m_active_days",
+      "importance": 0.0009889211900318828
+    },
+    {
+      "feature": "state",
+      "importance": 0.0009249786287212625
+    },
+    {
+      "feature": "seat_utilisation",
+      "importance": 0.0008413394748640612
+    },
+    {
+      "feature": "feature_adoption",
+      "importance": 0.0008112712466286365
+    },
+    {
+      "feature": "late_payment_rate_180d",
+      "importance": 0.0007291545347074546
+    },
+    {
+      "feature": "p180_late",
+      "importance": 0.0006911886389292798
+    },
+    {
+      "feature": "mrr",
+      "importance": 0.0006482748068591393
+    },
+    {
+      "feature": "tickets_per_seat_90d",
+      "importance": 0.0006040288380950998
+    },
+    {
+      "feature": "u3m_seats_active",
+      "importance": 0.0005610198534040378
+    },
+    {
+      "feature": "seat_trend_pct",
+      "importance": 0.0004161975642451021
+    },
+    {
+      "feature": "u1m_active_days",
+      "importance": 0.0003867954043567101
+    },
+    {
+      "feature": "acquisition_channel",
+      "importance": 0.000337696651921765
+    }
+  ]
+}

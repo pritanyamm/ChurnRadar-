@@ -1,0 +1,26 @@
+# Optional. Only needed if you want the PostgreSQL path rather than the CSV
+# fallback. Everything in this project runs without Docker.
+#
+#   docker compose up -d
+#   psql postgresql://churn:churn@localhost:5433/churnradar -f sql/01_schema.sql
+#   psql postgresql://churn:churn@localhost:5433/churnradar -f sql/02_load.sql
+#   psql postgresql://churn:churn@localhost:5433/churnradar -f sql/03_views.sql
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: churn
+      POSTGRES_PASSWORD: churn
+      POSTGRES_DB: churnradar
+    ports:
+      - "5433:5432"          # 5433 so it does not clash with a local Postgres
+    volumes:
+      - churn_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U churn -d churnradar"]
+      interval: 5s
+      retries: 10
+
+volumes:
+  churn_pgdata:

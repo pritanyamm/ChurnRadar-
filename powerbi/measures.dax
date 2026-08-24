@@ -1,0 +1,185 @@
+// ChurnRadar - DAX measure library
+// Paste these into Power BI Desktop one at a time:
+//   Modeling ribbon -> New Measure -> paste -> Enter
+//
+// Put every measure in a dedicated "_Measures" table (Home -> Enter Data,
+// create an empty table called _Measures) so they group together in the
+// field list instead of scattering across fact tables.
+
+// ============================================================
+// Core counts
+// ============================================================
+
+Active Customers =
+DISTINCTCOUNT ( fact_scored[customer_id] )
+
+At Risk Customers =
+CALCULATE (
+    [Active Customers],
+    fact_scored[churn_probability_90d] >= 0.15
+)
+
+At Risk % of Base =
+DIVIDE ( [At Risk Customers], [Active Customers] )
+
+
+// ============================================================
+// Revenue
+// ============================================================
+
+ARR =
+SUM ( fact_scored[arr] )
+
+MRR =
+SUM ( fact_scored[mrr] )
+
+Average MRR =
+AVERAGE ( fact_scored[mrr] )
+
+// Probability-weighted expected loss. NOT the ARR of at-risk accounts -
+// that would assume every flagged account definitely leaves, which
+// overstates the number by roughly 3x.
+Revenue at Risk =
+SUM ( fact_scored[revenue_at_risk] )
+
+// The gross exposure, kept separate and labelled so the two are never
+// confused on a page.
+ARR in At Risk Accounts =
+CALCULATE ( [ARR], fact_scored[churn_probability_90d] >= 0.15 )
+
+Revenue at Risk % of ARR =
+DIVIDE ( [Revenue at Risk], [ARR] )
+
+
+// ============================================================
+// Risk
+// ============================================================
+
+Predicted Churn % =
+AVERAGE ( fact_scored[churn_probability_90d] )
+
+// Is our risk spread thin across many accounts, or sitting on a few big
+// ones? Changes whether the right response is a campaign or phone calls.
+Risk Concentration =
+DIVIDE (
+    CALCULATE (
+        [Revenue at Risk],
+        fact_scored[risk_band] IN { "High", "Critical" }
+    ),
+    [Revenue at Risk]
+)
+
+// Share of total revenue-at-risk held by the worst 20 accounts.
+Top 20 Accounts Share =
+VAR Top20 =
+    TOPN ( 20, ALLSELECTED ( fact_scored ), fact_scored[revenue_at_risk], DESC )
+RETURN
+    DIVIDE ( SUMX ( Top20, fact_scored[revenue_at_risk] ), [Revenue at Risk] )
+
+
+// ============================================================
+// Historical churn (uses fact_monthly)
+// ============================================================
+
+Logo Churn % =
+DIVIDE (
+    SUM ( fact_monthly[churned_accounts] ),
+    SUM ( fact_monthly[active_accounts] )
+)
+
+Revenue Churn % =
+DIVIDE (
+    SUM ( fact_monthly[churned_mrr] ),
+    SUM ( fact_monthly[active_mrr] )
+)
+
+// Trailing 3 months, to smooth the month-to-month noise that makes
+// executives ask about meaningless wobbles.
+Logo Churn % (3M avg) =
+AVERAGEX (
+    DATESINPERIOD ( dim_date[date_key], MAX ( dim_date[date_key] ), -3, MONTH ),
+    [Logo Churn %]
+)
+
+Churn % vs Last Month =
+VAR Current = [Logo Churn %]
+VAR Previous =
+    CALCULATE ( [Logo Churn %], DATEADD ( dim_date[date_key], -1, MONTH ) )
+RETURN
+    Current - Previous
+
+
+// ============================================================
+// Cohort retention (uses fact_cohort)
+// ============================================================
+
+Retention % =
+DIVIDE ( SUM ( fact_cohort[retained] ), SUM ( fact_cohort[cohort_size] ) )
+
+Month 12 Retention =
+CALCULATE ( [Retention %], fact_cohort[months_since_signup] = 12 )
+
+
+// ============================================================
+// Retention simulator - the simplified what-if version
+// ============================================================
+// Create the parameter first:
+//   Modeling -> New Parameter -> Numeric range
+//   Name "Discount %", Minimum 0, Maximum 40, Increment 1, Default 15
+// That generates a 'Discount %' table with a 'Discount % Value' measure.
+//
+// This is a portfolio-level approximation. The per-account version with the
+// saturating uplift curve and break-even bisection lives in the FastAPI
+// service (backend/app/simulator.py) - DAX is the wrong tool for a bisection
+// search, and pretending otherwise makes the report slow and the logic
+// unreadable. Link to the web simulator from the report instead.
+
+Gross Margin = 0.78
+
+// Churn risk over 12 months, from the 90-day probability.
+Churn Risk 12M =
+AVERAGEX (
+    fact_scored,
+    1 - POWER ( 1 - fact_scored[churn_probability_90d], 4 )
+)
+
+// Saturating response: u(d) = ceiling x (1 - e^(-8d)), ceiling scaled by
+// how price-driven the account's risk actually is.
+Uplift =
+AVERAGEX (
+    fact_scored,
+    VAR d = [Discount % Value] / 100
+    VAR ceiling = 0.20 + 0.55 * fact_scored[price_sensitivity]
+    RETURN ceiling * ( 1 - EXP ( -8 * d ) )
+)
+
+Expected Revenue Saved =
+SUMX (
+    fact_scored,
+    VAR d = [Discount % Value] / 100
+    VAR p0 = 1 - POWER ( 1 - fact_scored[churn_probability_90d], 4 )
+    VAR ceiling = 0.20 + 0.55 * fact_scored[price_sensitivity]
+    VAR u = ceiling * ( 1 - EXP ( -8 * d ) )
+    VAR p1 = p0 * ( 1 - u )
+    RETURN fact_scored[arr] * [Gross Margin] * ( p0 - p1 )
+)
+
+Retention Cost =
+SUMX (
+    fact_scored,
+    VAR d = [Discount % Value] / 100
+    VAR p0 = 1 - POWER ( 1 - fact_scored[churn_probability_90d], 4 )
+    VAR ceiling = 0.20 + 0.55 * fact_scored[price_sensitivity]
+    VAR u = ceiling * ( 1 - EXP ( -8 * d ) )
+    VAR p1 = p0 * ( 1 - u )
+    VAR outreach =
+        SWITCH ( fact_scored[segment], "SMB", 800, "Mid-Market", 2500, 8000 )
+    RETURN fact_scored[arr] * [Gross Margin] * d * ( 1 - p1 ) + outreach
+)
+
+Expected Benefit =
+[Expected Revenue Saved] - [Retention Cost]
+
+// Colour the KPI card with this: green above zero, red below.
+Benefit Colour =
+IF ( [Expected Benefit] > 0, "#29B6A0", "#E0574B" )
