@@ -36,7 +36,7 @@ export default function App() {
     <div className="shell">
       <header className="topbar">
         <h1 className="wordmark">Churn<span>Radar</span></h1>
-        <span className="tagline">Who is leaving, why, and what it costs us</span>
+        <span className="tagline">Who is leaving, why, and what it costs us?</span>
         <div className="topbar-right">
           {metrics && (
             <>
